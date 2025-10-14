@@ -1,0 +1,24 @@
+services:
+ mqtt:
+   image: eclipse-mosquitto
+   restart: unless-stopped
+   ports:
+     - "1893:1883"
+   volumes:
+     - ./mosquitto/config:/mosquitto/config
+     - ./mosquitto/data:/mosquitto/data
+     - ./mosquitto/log:/mosquitto/log
+   networks:
+     - internal_net
+
+ controller:
+   image: controller
+   restart: unless-stopped
+   networks:
+     - internal_net
+   depends_on:
+     - mqtt
+
+networks:
+  internal_net:
+    driver: bridge
