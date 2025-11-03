@@ -1,0 +1,4 @@
+nodered/data/*
+
+!nodered/data/flows.json
+!nodered/data/settings.js

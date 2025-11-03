@@ -9,6 +9,7 @@ services:
      - ./mosquitto/data:/mosquitto/data
      - ./mosquitto/log:/mosquitto/log
    networks:
+     - default
      - internal_net
 
  controller:
@@ -18,7 +19,40 @@ services:
      - internal_net
    depends_on:
      - mqtt
+   environment:
+     - MQTT_BROKER=mqtt
+     - MQTT_PORT=1883
+
+ NodeRed:
+   image: nodered/node-red
+   restart: unless-stopped
+   ports:
+     - "1880:1880"
+   volumes:
+     - ./nodered/data:/data
+   networks:
+     - default
+     - internal_net
+   depends_on:
+     - mqtt
+   environment:
+     - MQTT_BROKER=mqtt
+     - MQTT_PORT=1883
+     - INFLUXDB_HOST=influxdb
+     - INFLUXDB_PORT=8086
+
+ influxdb:
+   image: influxdb:2
+   restart: unless-stopped
+   ports:
+     - "8086:8086"
+   volumes:
+     - ./influxdb/data:/var/lib/influxdb
+   networks:
+     - default
+     - internal_net
 
 networks:
   internal_net:
     driver: bridge
+    internal: true

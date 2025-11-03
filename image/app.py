@@ -1,9 +1,10 @@
 from paho.mqtt import client as mqtt_client
 import random
 import time
+import os
 
-BROKER = "mqtt"
-PORT = 1883
+BROKER = os.getenv("MQTT_BROKER", "localhost")
+PORT = int(os.getenv("MQTT_PORT", 1883))
 CLIENT_ID = f"joystick-simulator--{random.randint(0, 1000)}"
 
 JOYSTICK_TOPIC = "joystick"
@@ -50,7 +51,7 @@ def main():
 			buttons = {"A": random.choice([0,1]), "B": random.choice([0,1]), "Y": random.choice([0,1]), "X": random.choice([0,1])}
 
 			client.publish(JOYSTICK_TOPIC, f'{{"x":{x},"y":{y}}}')
-			client.publish(BUTTONS_TOPIC, f'A:{buttons["A"]},B:{buttons["B"]},Y:{buttons["Y"]},X:{buttons["X"]}')
+			client.publish(BUTTONS_TOPIC, f'{{"A":{buttons["A"]},"B":{buttons["B"]},"Y":{buttons["Y"]},"X":{buttons["X"]}}}')
 
 			time.sleep(0.5)
 
