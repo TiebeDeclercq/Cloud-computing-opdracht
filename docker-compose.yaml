@@ -5,9 +5,9 @@ services:
    ports:
      - "1893:1883"
    volumes:
-     - ./mosquitto/config:/mosquitto/config
-     - ./mosquitto/data:/mosquitto/data
-     - ./mosquitto/log:/mosquitto/log
+     - ./mosquitto/config:/mosquitto/config   # bind mount so host can edit/share config
+     - mosquitto_data:/mosquitto/data
+     - mosquitto_log:/mosquitto/log
    networks:
      - default
      - internal_net
@@ -22,6 +22,9 @@ services:
    environment:
      - MQTT_BROKER=mqtt
      - MQTT_PORT=1883
+   volumes:
+     - ./mosquitto/config:/mosquitto/config
+     - mosquitto_log:/mosquitto/log
 
  NodeRed:
    image: nodered/node-red
@@ -29,7 +32,7 @@ services:
    ports:
      - "1880:1880"
    volumes:
-     - ./nodered/data:/data
+     - nodered_data:/data
    networks:
      - default
      - internal_net
@@ -47,12 +50,38 @@ services:
    ports:
      - "8086:8086"
    volumes:
-     - ./influxdb/data:/var/lib/influxdb
+     - influxdb_data:/var/lib/influxdb
    networks:
      - default
      - internal_net
+
+ portainer:
+   image: portainer/portainer-ce
+   restart: unless-stopped
+   ports:
+     - "9000:9000"
+   volumes:
+     - /var/run/docker.sock:/var/run/docker.sock
+     - portainer_data:/data
+   networks:
+     - default
 
 networks:
   internal_net:
     driver: bridge
     internal: true
+
+volumes:
+  mosquitto_config:
+    driver: local
+  mosquitto_data:
+    driver: local
+  mosquitto_log:
+    driver: local
+  nodered_data:
+    driver: local
+  influxdb_data:
+    driver: local
+  portainer_data:
+    driver: local
+
