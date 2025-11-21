@@ -1,163 +1,11 @@
 [
     {
-        "id": "20bea9b33f4663ad",
+        "id": "7abbcc07f2a69fdf",
         "type": "tab",
         "label": "MQTT to InfluxDB Flow",
         "disabled": false,
         "info": "Flow voor joystick en button data van MQTT naar InfluxDB",
         "env": []
-    },
-    {
-        "id": "b6f176780a4d03c2",
-        "type": "mqtt in",
-        "z": "20bea9b33f4663ad",
-        "name": "Joystick MQTT In",
-        "topic": "joystick",
-        "qos": "0",
-        "datatype": "json",
-        "broker": "mqtt_broker",
-        "nl": false,
-        "rap": true,
-        "rh": 0,
-        "inputs": 0,
-        "x": 130,
-        "y": 100,
-        "wires": [
-            [
-                "a36c6c23d6e8f15f"
-            ]
-        ]
-    },
-    {
-        "id": "a36c6c23d6e8f15f",
-        "type": "function",
-        "z": "20bea9b33f4663ad",
-        "name": "Validate Joystick Data",
-        "func": "// Parse JSON if needed\nlet data;\ntry {\n    if (typeof msg.payload === 'string') {\n        data = JSON.parse(msg.payload);\n    } else {\n        data = msg.payload;\n    }\n} catch (e) {\n    node.warn(\"Invalid JSON: \" + msg.payload);\n    return null;\n}\n\n// Validatie: x en y moeten tussen -1 en 1 liggen\nif (typeof data.x !== 'number' || typeof data.y !== 'number') {\n    node.warn(\"Missing x or y values\");\n    return null;\n}\n\nif (data.x < -1 || data.x > 1 || data.y < -1 || data.y > 1) {\n    node.warn(\"Values out of range: x=\" + data.x + \", y=\" + data.y);\n    return null;\n}\n\n// Data is valid - format voor InfluxDB\nmsg.payload = {\n    x: data.x,\n    y: data.y\n};\n\nreturn msg;",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 360,
-        "y": 100,
-        "wires": [
-            [
-                "2671ea0d8cfc421c",
-                "86da12df7580c5fa"
-            ]
-        ]
-    },
-    {
-        "id": "2671ea0d8cfc421c",
-        "type": "influxdb out",
-        "z": "20bea9b33f4663ad",
-        "influxdb": "influx_config",
-        "name": "Write Joystick to InfluxDB",
-        "measurement": "joystick",
-        "precision": "ms",
-        "retentionPolicy": "",
-        "database": "",
-        "precisionV18FluxV20": "ms",
-        "retentionPolicyV18Flux": "",
-        "org": "Dectronics",
-        "bucket": "controller",
-        "x": 650,
-        "y": 100,
-        "wires": []
-    },
-    {
-        "id": "86da12df7580c5fa",
-        "type": "debug",
-        "z": "20bea9b33f4663ad",
-        "name": "Debug Joystick",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "payload",
-        "targetType": "msg",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 640,
-        "y": 60,
-        "wires": []
-    },
-    {
-        "id": "ced19651c436fe64",
-        "type": "mqtt in",
-        "z": "20bea9b33f4663ad",
-        "name": "Buttons MQTT In",
-        "topic": "buttons",
-        "qos": "0",
-        "datatype": "json",
-        "broker": "mqtt_broker",
-        "nl": false,
-        "rap": true,
-        "rh": 0,
-        "inputs": 0,
-        "x": 130,
-        "y": 200,
-        "wires": [
-            [
-                "cfa08f284e4ab8f6"
-            ]
-        ]
-    },
-    {
-        "id": "cfa08f284e4ab8f6",
-        "type": "function",
-        "z": "20bea9b33f4663ad",
-        "name": "Validate Button Data",
-        "func": "// Parse JSON if needed\nlet data;\ntry {\n    if (typeof msg.payload === 'string') {\n        data = JSON.parse(msg.payload);\n    } else {\n        data = msg.payload;\n    }\n} catch (e) {\n    node.warn(\"Invalid JSON: \" + msg.payload);\n    return null;\n}\n\n// Validatie: buttons moeten 0 of 1 zijn\nconst buttons = ['A', 'B', 'X', 'Y'];\nfor (let btn of buttons) {\n    if (data[btn] !== 0 && data[btn] !== 1) {\n        node.warn(\"Invalid button value for \" + btn + \": \" + data[btn]);\n        return null;\n    }\n}\n\n// Data is valid - format voor InfluxDB als single object\nmsg.payload = {\n    A: data.A,\n    B: data.B,\n    X: data.X,\n    Y: data.Y\n};\n\nreturn msg;",
-        "outputs": 1,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 360,
-        "y": 200,
-        "wires": [
-            [
-                "f6a9da2a6034f539",
-                "aafd5bc341b6fbe9"
-            ]
-        ]
-    },
-    {
-        "id": "f6a9da2a6034f539",
-        "type": "influxdb out",
-        "z": "20bea9b33f4663ad",
-        "influxdb": "influx_config",
-        "name": "Write Buttons to InfluxDB",
-        "measurement": "buttons",
-        "precision": "ms",
-        "retentionPolicy": "",
-        "database": "",
-        "precisionV18FluxV20": "ms",
-        "retentionPolicyV18Flux": "",
-        "org": "Dectronics",
-        "bucket": "controller",
-        "x": 650,
-        "y": 200,
-        "wires": []
-    },
-    {
-        "id": "aafd5bc341b6fbe9",
-        "type": "debug",
-        "z": "20bea9b33f4663ad",
-        "name": "Debug Buttons",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "payload",
-        "targetType": "msg",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 640,
-        "y": 160,
-        "wires": []
     },
     {
         "id": "mqtt_broker",
@@ -187,6 +35,14 @@
         "sessionExpiry": ""
     },
     {
+        "id": "0cd8b6f23c0f3e18",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "node-red-contrib-influxdb": "0.7.0"
+        }
+    },
+    {
         "id": "influx_config",
         "type": "influxdb",
         "hostname": "influxdb",
@@ -202,11 +58,157 @@
         "rejectUnauthorized": true
     },
     {
-        "id": "0cd8b6f23c0f3e18",
-        "type": "global-config",
-        "env": [],
-        "modules": {
-            "node-red-contrib-influxdb": "0.7.0"
-        }
+        "id": "62d66926ea102049",
+        "type": "mqtt in",
+        "z": "7abbcc07f2a69fdf",
+        "name": "Joystick MQTT",
+        "topic": "joystick",
+        "qos": "0",
+        "datatype": "json",
+        "broker": "mqtt_broker",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 130,
+        "y": 100,
+        "wires": [
+            [
+                "b85759e7011c474d"
+            ]
+        ]
+    },
+    {
+        "id": "b85759e7011c474d",
+        "type": "function",
+        "z": "7abbcc07f2a69fdf",
+        "name": "Valideer Joystick data",
+        "func": "// Parse JSON indien nodig\nlet data;\ntry {\n    if (typeof msg.payload === 'string') {\n        data = JSON.parse(msg.payload);\n    } else {\n        data = msg.payload;\n    }\n} catch (e) {\n    node.warn(\"Invalid JSON: \" + msg.payload);\n    return null;\n}\n\n// x en y moeten tussen -1 en 1 liggen\nif (typeof data.x !== 'number' || typeof data.y !== 'number') {\n    node.warn(\"Missing x or y values\");\n    return null;\n}\n\nif (data.x < -1 || data.x > 1 || data.y < -1 || data.y > 1) {\n    node.warn(\"Values out of range: x=\" + data.x + \", y=\" + data.y);\n    return null;\n}\n\n// Format voor InfluxDB\nmsg.payload = {\n    x: data.x,\n    y: data.y\n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 360,
+        "y": 100,
+        "wires": [
+            [
+                "97582370c3afab8f",
+                "f961dc6c5396835a"
+            ]
+        ]
+    },
+    {
+        "id": "97582370c3afab8f",
+        "type": "influxdb out",
+        "z": "7abbcc07f2a69fdf",
+        "influxdb": "influx_config",
+        "name": "Naar InfluxDB sturen",
+        "measurement": "joystick",
+        "precision": "ms",
+        "retentionPolicy": "",
+        "database": "",
+        "precisionV18FluxV20": "ms",
+        "retentionPolicyV18Flux": "",
+        "org": "Dectronics",
+        "bucket": "controller",
+        "x": 640,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "f961dc6c5396835a",
+        "type": "debug",
+        "z": "7abbcc07f2a69fdf",
+        "name": "Debug Joystick",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 640,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "0aa56fc88d2ffaa3",
+        "type": "mqtt in",
+        "z": "7abbcc07f2a69fdf",
+        "name": "Buttons MQTT",
+        "topic": "buttons",
+        "qos": "0",
+        "datatype": "json",
+        "broker": "mqtt_broker",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 130,
+        "y": 200,
+        "wires": [
+            [
+                "beda837bd5419891"
+            ]
+        ]
+    },
+    {
+        "id": "beda837bd5419891",
+        "type": "function",
+        "z": "7abbcc07f2a69fdf",
+        "name": "Valideer Knop Data",
+        "func": "// Parse JSON indien nodig\nlet data;\ntry {\n    if (typeof msg.payload === 'string') {\n        data = JSON.parse(msg.payload);\n    } else {\n        data = msg.payload;\n    }\n} catch (e) {\n    node.warn(\"Invalid JSON: \" + msg.payload);\n    return null;\n}\n\n// Buttons moeten 0 of 1 zijn\nconst buttons = ['A', 'B', 'X', 'Y'];\nfor (let btn of buttons) {\n    if (data[btn] !== 0 && data[btn] !== 1) {\n        node.warn(\"Invalid button value for \" + btn + \": \" + data[btn]);\n        return null;\n    }\n}\n\n// Format voor InfluxDB als single object\nmsg.payload = {\n    A: data.A,\n    B: data.B,\n    X: data.X,\n    Y: data.Y\n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 350,
+        "y": 200,
+        "wires": [
+            [
+                "8c457aef4645b9a4",
+                "ef6765f9e19a193a"
+            ]
+        ]
+    },
+    {
+        "id": "8c457aef4645b9a4",
+        "type": "influxdb out",
+        "z": "7abbcc07f2a69fdf",
+        "influxdb": "influx_config",
+        "name": "Naar InfluxDB sturen",
+        "measurement": "buttons",
+        "precision": "ms",
+        "retentionPolicy": "",
+        "database": "",
+        "precisionV18FluxV20": "ms",
+        "retentionPolicyV18Flux": "",
+        "org": "Dectronics",
+        "bucket": "controller",
+        "x": 640,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "ef6765f9e19a193a",
+        "type": "debug",
+        "z": "7abbcc07f2a69fdf",
+        "name": "Debug Buttons",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 640,
+        "y": 160,
+        "wires": []
     }
 ]

@@ -3,8 +3,8 @@ import random
 import time
 import os
 
-BROKER = os.getenv("MQTT_BROKER", "localhost")
-PORT = int(os.getenv("MQTT_PORT", 1883))
+BROKER = "mqtt"
+PORT = 1883
 CLIENT_ID = f"joystick-simulator--{random.randint(0, 1000)}"
 
 JOYSTICK_TOPIC = "joystick"
