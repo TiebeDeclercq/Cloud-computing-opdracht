@@ -2,5 +2,7 @@ nodered/data/*
 
 !nodered/data/flows.json
 !nodered/data/settings.js
+!nodered/data/flows_cred.json
 
 docker-compose-dev.yaml
+nodered/secret.txt

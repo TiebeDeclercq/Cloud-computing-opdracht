@@ -1,35 +1,95 @@
-name: CI/CD Pipeline
+name: Build and Publish All Images
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches: [ "main" ]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
-    
-    env:
-      INFLUXDB_PASSWORD: ${{ secrets.INFLUXDB_PASSWORD }}
-      INFLUXDB_TOKEN: ${{ secrets.INFLUXDB_TOKEN }}
-    
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-    
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
     - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
-    
-    - name: Build Docker images
-      run: docker compose build
-    
-    - name: Run tests
-      run: |
-        docker compose up -d
-        sleep 15
-        docker compose ps
-        docker compose logs
-    
-    - name: Stop containers
-      run: docker compose down
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    # ------------------------------
+    # Build: Node-RED (requires secret)
+    # ------------------------------
+    - name: Create credential secret file
+      run: echo "${{ secrets.NODERED_CREDENTIALSECRET }}" > nodered/secret.txt
+
+    - name: Build & Push Node-RED image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./nodered
+        file: ./nodered/Dockerfile
+        push: true
+        tags: |
+          ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ github.event.repository.name }}-nodered:latest
+        secrets: |
+          credsecret=nodered/secret.txt
+        provenance: false
+        sbom: false
+
+    # ------------------------------
+    # Build: InfluxDB
+    # ------------------------------
+    - name: Build & Push InfluxDB image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./influxdb
+        file: ./influxdb/Dockerfile
+        push: true
+        tags: |
+          ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ github.event.repository.name }}-influxdb:latest
+        build-args: |
+          INFLUXDB_PASSWORD=${{ secrets.INFLUXDB_PASSWORD }}
+          INFLUXDB_TOKEN=${{ secrets.INFLUXDB_TOKEN }}
+        provenance: false
+        sbom: false
+
+    # ------------------------------
+    # Build: Mosquitto
+    # ------------------------------
+    - name: Build & Push Mosquitto image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./mosquitto
+        file: ./mosquitto/Dockerfile
+        push: true
+        tags: |
+          ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ github.event.repository.name }}-mosquitto:latest
+        provenance: false
+        sbom: false
+
+    # ------------------------------
+    # Build: Python App (image/)
+    # ------------------------------
+    - name: Build & Push Controller Python image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./image
+        file: ./image/dockerfile
+        push: true
+        tags: |
+          ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ github.event.repository.name }}-controller:latest
+        provenance: false
+        sbom: false
