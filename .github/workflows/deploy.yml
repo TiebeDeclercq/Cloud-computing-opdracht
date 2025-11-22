@@ -7,6 +7,8 @@ on:
 
 env:
   REGISTRY: ghcr.io
+  OWNER_LC: ${{ github.repository_owner }}
+  REPO_LC: ${{ github.event.repository.name }}
 
 jobs:
   build:
@@ -23,6 +25,18 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
+    - name: set lower case owner name
+      run: |
+        echo "OWNER_LC=${OWNER,,}" >>${GITHUB_ENV}
+      env:
+        OWNER: '${{ github.repository_owner }}'
+    
+    - name: set lower case repo name
+      run: |
+        echo "REPO_LC=${REPO,,}" >>${GITHUB_ENV}
+      env:
+        REPO: '${{ github.event.repository.name }}'
+
     - name: Log in to GitHub Container Registry
       uses: docker/login-action@v3
       with:
@@ -31,7 +45,7 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
 
     # ------------------------------
-    # Build: Node-RED (requires secret)
+    # Build: Node-RED
     # ------------------------------
     - name: Create credential secret file
       run: echo "${{ secrets.NODERED_CREDENTIALSECRET }}" > nodered/secret.txt
@@ -43,7 +57,7 @@ jobs:
         file: ./nodered/Dockerfile
         push: true
         tags: |
-          ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ github.event.repository.name }}-nodered:latest
+          ${{ env.REGISTRY }}/${{ env.OWNER_LC }}/${{ env.REPO_LC }}-nodered:latest
         secrets: |
           credsecret=nodered/secret.txt
         provenance: false
@@ -59,7 +73,7 @@ jobs:
         file: ./influxdb/Dockerfile
         push: true
         tags: |
-          ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ github.event.repository.name }}-influxdb:latest
+          ${{ env.REGISTRY }}/${{ env.OWNER_LC }}/${{ env.REPO_LC }}-influxdb:latest
         build-args: |
           INFLUXDB_PASSWORD=${{ secrets.INFLUXDB_PASSWORD }}
           INFLUXDB_TOKEN=${{ secrets.INFLUXDB_TOKEN }}
@@ -76,7 +90,7 @@ jobs:
         file: ./mosquitto/Dockerfile
         push: true
         tags: |
-          ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ github.event.repository.name }}-mosquitto:latest
+          ${{ env.REGISTRY }}/${{ env.OWNER_LC }}/${{ env.REPO_LC }}-mosquitto:latest
         provenance: false
         sbom: false
 
@@ -90,6 +104,6 @@ jobs:
         file: ./image/dockerfile
         push: true
         tags: |
-          ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ github.event.repository.name }}-controller:latest
+          ${{ env.REGISTRY }}/${{ env.OWNER_LC }}/${{ env.REPO_LC }}-controller:latest
         provenance: false
         sbom: false
