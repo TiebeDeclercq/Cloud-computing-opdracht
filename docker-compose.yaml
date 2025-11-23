@@ -1,0 +1,64 @@
+services:
+  mqtt:
+    image: ghcr.io/tiebedeclercq/cloud-computing-opdracht-mosquitto:latest
+    container_name: mqtt_broker
+    restart: unless-stopped
+    volumes:
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_log:/mosquitto/log
+    networks:
+      - internal_network
+
+  influxdb:
+    image: ghcr.io/tiebedeclercq/cloud-computing-opdracht-influxdb:latest
+    container_name: influxdb_database
+    restart: unless-stopped
+    volumes:
+      - influxdb_data:/var/lib/influxdb
+    ports:
+      - "8086:8086"
+    networks:
+      - internal_network
+      - default
+
+  nodered:
+    image: ghcr.io/tiebedeclercq/cloud-computing-opdracht-nodered:latest
+    container_name: nodered_app
+    restart: unless-stopped
+    networks:
+      - internal_network
+
+  controller:
+    image: ghcr.io/tiebedeclercq/cloud-computing-opdracht-controller:latest
+    container_name: controller_app
+    restart: unless-stopped
+    networks:
+      - internal_network
+
+  portainer:
+    image: ghcr.io/tiebedeclercq/cloud-computing-opdracht-portainer:latest
+    container_name: portainer
+    restart: unless-stopped
+    volumes:
+     - /var/run/docker.sock:/var/run/docker.sock
+     - portainer_data:/data
+    ports:
+      - "9000:9000"
+    networks:
+      - internal_network
+      - default
+
+networks:
+  internal_network:
+    driver: bridge
+    internal: true
+
+volumes:
+  mosquitto_data:
+    driver: local
+  mosquitto_log:
+    driver: local
+  influxdb_data:
+    driver: local
+  portainer_data:
+    driver: local
