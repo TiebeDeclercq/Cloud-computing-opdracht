@@ -6,3 +6,4 @@ nodered/data/*
 
 docker-compose-dev.yaml
 nodered/secret.txt
+portainer

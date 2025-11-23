@@ -47,9 +47,6 @@ jobs:
     # ------------------------------
     # Build: Node-RED
     # ------------------------------
-    - name: Create credential secret file
-      run: echo "${{ secrets.NODERED_CREDENTIALSECRET }}" > nodered/secret.txt
-
     - name: Build & Push Node-RED image
       uses: docker/build-push-action@v5
       with:
@@ -58,10 +55,8 @@ jobs:
         push: true
         tags: |
           ${{ env.REGISTRY }}/${{ env.OWNER_LC }}/${{ env.REPO_LC }}-nodered:latest
-        secrets: |
-          credsecret=nodered/secret.txt
-        provenance: false
-        sbom: false
+        build-args: |
+          NODERED_SECRET=${{ secrets.NODERED_CREDENTIALSECRET }}
 
     # ------------------------------
     # Build: InfluxDB
@@ -77,8 +72,6 @@ jobs:
         build-args: |
           INFLUXDB_PASSWORD=${{ secrets.INFLUXDB_PASSWORD }}
           INFLUXDB_TOKEN=${{ secrets.INFLUXDB_TOKEN }}
-        provenance: false
-        sbom: false
 
     # ------------------------------
     # Build: Mosquitto
@@ -91,8 +84,6 @@ jobs:
         push: true
         tags: |
           ${{ env.REGISTRY }}/${{ env.OWNER_LC }}/${{ env.REPO_LC }}-mosquitto:latest
-        provenance: false
-        sbom: false
 
     # ------------------------------
     # Build: Python App (image/)
@@ -101,9 +92,7 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: ./image
-        file: ./image/dockerfile
+        file: ./image/Dockerfile
         push: true
         tags: |
           ${{ env.REGISTRY }}/${{ env.OWNER_LC }}/${{ env.REPO_LC }}-controller:latest
-        provenance: false
-        sbom: false
