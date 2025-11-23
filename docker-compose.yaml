@@ -36,7 +36,7 @@ services:
       - internal_network
 
   portainer:
-    image: ghcr.io/tiebedeclercq/cloud-computing-opdracht-portainer:latest
+    image: portainer/portainer-ce:latest
     container_name: portainer
     restart: unless-stopped
     volumes:
