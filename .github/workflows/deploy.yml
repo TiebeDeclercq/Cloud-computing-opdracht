@@ -102,4 +102,4 @@ jobs:
     # ------------------------------
     - name: Deploy services with Docker Compose
       run: |
-        docker-compose -f docker-compose.yaml up -d
+        docker compose -f docker-compose.yaml up -d
