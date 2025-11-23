@@ -96,3 +96,10 @@ jobs:
         push: true
         tags: |
           ${{ env.REGISTRY }}/${{ env.OWNER_LC }}/${{ env.REPO_LC }}-controller:latest
+
+    # ------------------------------
+    # Compose up all services (to test if build was successful)
+    # ------------------------------
+    - name: Deploy services with Docker Compose
+      run: |
+        docker-compose -f docker-compose.yaml up -d
