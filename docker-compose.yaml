@@ -27,6 +27,9 @@ services:
     restart: unless-stopped
     networks:
       - internal_network
+      - default
+    ports:
+      - "1880:1880"
 
   controller:
     image: ghcr.io/tiebedeclercq/cloud-computing-opdracht-controller:latest
@@ -44,6 +47,7 @@ services:
      - portainer_data:/data
     ports:
       - "9000:9000"
+    command: --admin-password='$$2y$$05$$hWaGFXdmzyOG4lOYGFIUEOHiMiy9rwicnOI/B/oTLlrBtNOFY3GBi'
     networks:
       - internal_network
       - default

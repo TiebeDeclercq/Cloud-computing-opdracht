@@ -9,7 +9,7 @@ Containergebaseerde edge-gateway die sensordata ontvangt via MQTT, verwerkt in N
 - **Portainer**: Container management interface
 ## Services
 - MQTT: intern netwerk (port 1883)
-- Node-RED: intern netwerk (port 1880)
+- Node-RED: http://localhost:1880
 - InfluxDB: http://localhost:8086
 - Portainer: http://localhost:9000
 ## Installatie
@@ -42,21 +42,13 @@ Toont automatisch:
 
 Dashboard wordt automatisch geïmporteerd bij eerste start.
 ## CI/CD
-### Lokale deployment
-```bash
-./update.sh
-```
-Dit script:
-- Stopt alle containers
-- Herbouwt alle images
-- Start de vernieuwde stack
 ### GitHub Actions
 Push naar `main` branch triggert automatisch:
 - Build van alle custom images
 - Push naar GitHub Container Registry
 - Deploy test via docker-compose
 ## Docker Compose
-Alle services draaien in een geïsoleerd `internal_network`. Alleen InfluxDB en Portainer zijn extern toegankelijk voor UI access.
+Alle services draaien in een geïsoleerd `internal_network`. Alleen InfluxDB, Portainer en NodeRed zijn extern toegankelijk voor UI access.
 
 Volumes:
 - `mosquitto_data` & `mosquitto_log`
