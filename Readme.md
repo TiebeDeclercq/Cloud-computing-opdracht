@@ -13,9 +13,9 @@ Containergebaseerde edge-gateway die sensordata ontvangt via MQTT, verwerkt in N
 - InfluxDB: http://localhost:8086
 - Portainer: http://localhost:9000
 ## Installatie
+Download alleen het docker-compose.yaml bestand en start de containers:
 ```bash
-git clone https://github.com/TiebeDeclercq/Cloud-computing-opdracht
-cd Cloud-computing-opdracht
+curl -o docker-compose.yaml https://raw.githubusercontent.com/TiebeDeclercq/Cloud-computing-opdracht/main/docker-compose.yaml
 docker compose up
 ```
 
