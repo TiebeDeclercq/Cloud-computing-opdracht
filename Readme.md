@@ -1,55 +1,80 @@
 # Controller Gateway
 
-Een containergebaseerde edge-gateway die sensordata ontvangt via MQTT, verwerkt in Node-RED, opslaat in InfluxDB en beheerd wordt via Portainer.
+Containergebaseerde edge-gateway die sensordata ontvangt via MQTT, verwerkt in Node-RED, opslaat in InfluxDB en beheerd wordt via Portainer.
 ## Architectuur
-(moet niet maar ziet er misschien mooi uit NOG AANPASSEN)
-flowchart LR
-
-    Sensor --> MQTT[MQTT Broker]
-
-    MQTT --> NR[Node-RED]
-
-    NR --> InfluxDB
-
-    InfluxDB --> Dashboard[InfluxDB Dashboard]
-
-    NR --> Debug[Debug Logging]
-
-    Portainer --> Docker
-## Installatie
-1. Clone repository
-2. Run: `./deploy.sh`
-3. Open browsers voor configuratie
+- **Controller (Python)**: Simuleert joystick en button data
+- **MQTT Broker (Mosquitto)**: Ontvangt en distribueert sensordata
+- **Node-RED**: Valideert en verwerkt data met custom function nodes
+- **InfluxDB**: Tijdreeksdatabase met voorgeïnstalleerd dashboard
+- **Portainer**: Container management interface
 ## Services
-- MQTT: port 1883
-- Node-RED: http://localhost:1880
+- MQTT: intern netwerk (port 1883)
+- Node-RED: intern netwerk (port 1880)
 - InfluxDB: http://localhost:8086
-- Portainer: http://localhost:9000  
-## Node-RED Flow
-Node-RED ontvangt MQTT-berichten van de broker.
-De flow voert de volgende stappen uit:
-1. Ontvangen van MQTT-data via vooraf ingestelde topics (bv. controller/buttons en controller/joystick).
-2. Controle op geldig JSON-formaat, Controle op toegestane waardes (0/1 voor knoppen, bereik −100 tot 100 voor joystick)
-3. Opslag van enkel geldige metingen in InfluxDB.
-4. Debug log in Node-RED voor monitoring tijdens ontwikkeling.
-## InfluxDB Queries
-Voorbeeld van een query die gebruikt wordt:
+- Portainer: http://localhost:9000
+## Installatie
+```bash
+git clone https://github.com/TiebeDeclercq/Cloud-computing-opdracht
+cd Cloud-computing-opdracht
+docker compose up
 ```
-from(bucket: "controller")
 
-  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
+**Eerste keer opstarten:**
+- InfluxDB: login met admin / admin123
+- Portainer: login met admin / admin1234567
+## Node-RED Dataverwerking
+Twee MQTT topics worden uitgelezen:
+- `joystick`: x/y waarden (-1 tot 1)
+- `buttons`: A/B/X/Y knoppen (0 of 1)
 
-  |> filter(fn: (r) => r["_measurement"] == "joystick")
+Function nodes valideren:
+- JSON formaat controle
+- Waardebereik validatie (joystick: -1 tot 1, buttons: 0/1)
+- Filtering van ongeldige data
 
-  |> filter(fn: (r) => r["_field"] == "x")
+Enkel geldige metingen worden naar InfluxDB geschreven.
+## InfluxDB Dashboard
+Toont automatisch:
+- Live joystick X/Y waarden
+- Live button status (A/B/X/Y)
+- Gemiddelde over 1 uur (joystick & buttons)
+- Gemiddelde over 24 uur (joystick & buttons)
 
-  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)
-
-  |> yield(name: "mean")
+Dashboard wordt automatisch geïmporteerd bij eerste start.
+## CI/CD
+### Lokale deployment
+```bash
+./update.sh
 ```
-## CI/CD & Automatische Deploy
-De omgeving bevat een `update.sh` script om containers opnieuw op te bouwen en te deployen.
 Dit script:
-- bouwt de containers opnieuw
-- stopt de oude stack
-- start de vernieuwde versie
+- Stopt alle containers
+- Herbouwt alle images
+- Start de vernieuwde stack
+### GitHub Actions
+Push naar `main` branch triggert automatisch:
+- Build van alle custom images
+- Push naar GitHub Container Registry
+- Deploy test via docker-compose
+## Docker Compose
+Alle services draaien in een geïsoleerd `internal_network`. Alleen InfluxDB en Portainer zijn extern toegankelijk voor UI access.
+
+Volumes:
+- `mosquitto_data` & `mosquitto_log`
+- `influxdb_data`
+- `portainer_data`
+## Monitoring
+Portainer toont real-time:
+- Container status
+- Resource gebruik
+- Logs van alle services
+## Ontwikkeld
+Deze volledige containergebaseerde edge-infrastructuur werd ontwikkeld door Jarno Verbeke en Tiebe Declercq voor het opleidingsonderdeel Cloud Computing.
+### Jarno Verbeke
+- Initiele basis project opzetten
+- Mosquitto
+- Python simulator voor de controller
+- CI/CD met github actions
+### Tiebe Declercq
+- Repo opzetten / Readme
+- Node Red
+- InfluxDB dashboard
